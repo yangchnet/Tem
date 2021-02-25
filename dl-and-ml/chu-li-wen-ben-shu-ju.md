@@ -1,0 +1,271 @@
+---
+title: 处理文本数据
+date: '2021-01-22T09:27:21.000Z'
+draft: false
+---
+
+# 处理文本数据
+
+## 1. 单词和字符的one-hot编码
+
+one-hot编码是将标记转换为向量的最常用，最基本的方法。它将每个单词与一个唯一的整数索引相关联，然后将这个整数索引i转换为长度为N的二进制向量（N是词表大小），这个向量只有第i个元素是1，其余元素都是0.
+
+当然，也可以进行字符级的one-hot编码。
+
+### 1.1. 单词级的one-hot编码
+
+```python
+import numpy as np
+
+samples = ['The cat sat on the mat.', 'The dog ate my homework.']
+
+token_index = {}
+for sample in samples:
+    for word in sample.split():
+        if word not in token_index:
+            token_index[word] = len(token_index) + 1  # 为每个唯一单词指定一个唯一索引，没有为0索引指定单词
+max_length = 10
+
+results = np.zeros(shape=(len(samples), max_length, max(token_index.values())+1))
+
+for i, sample in enumerate(samples):
+    for j, word in list(enumerate(sample.split()))[:max_length]:
+        index = token_index.get(word)
+        results[i, j, index] = 1
+results
+```
+
+```text
+array([[[0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 1., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]],
+
+       [[0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]]])
+```
+
+### 1.2. 字符级的one-hot编码
+
+```python
+import string
+
+samples = ['The cat sat on the mat.', 'The dog ate my homework.']
+characters = string.printable   # 可打印的所有字符，共101个
+token_index = dict(zip(range(1, len(characters) + 1), characters))
+
+max_length = 50
+results = np.zeros((len(samples), max_length, max(token_index.keys()) + 1))
+for i, sample in enumerate(samples):
+    for j, character in enumerate(sample):
+        index = token_index.get(character)
+        results[i, j, index] = 1
+
+results.shape
+```
+
+```text
+(2, 50, 101)
+```
+
+### 1.3. 使用keras的内置函数实现one-hot编码
+
+Keras的内置函数可以对原始文本数据进行单词级或字符级的one-hot编码。我们应该使用这些函数，它们实现了许多重要的特性，比如从字符串中去除特殊字符、只考虑数据集中前N个常见的单词等。
+
+```python
+from keras.preprocessing.text import Tokenizer
+
+samples = ['The cat sat on the mat.', 'The dog ate my homework.']
+
+tokenizer = Tokenizer(num_words=1000)  # 创建一个分词器，只考虑前1000个单词
+tokenizer.fit_on_texts(samples)
+
+sequences = tokenizer.texts_to_sequences(samples)  # 将字符串转化为整数索引构建的列表
+
+one_hot_results = tokenizer.texts_to_matrix(samples, mode='binary')
+
+word_index = tokenizer.word_index  # 找回单词索引
+print('Found %s unique tokens.' % len(word_index))
+one_hot_results.shape
+```
+
+```text
+Found 9 unique tokens.
+
+
+
+
+
+(2, 1000)
+```
+
+### 1.4. one-hot散列技巧
+
+所谓的one-hot散列技巧是one-hot编码的一种变体，如果词表中唯一标记的数量太大而无法直接处理，就可以使用这种技巧。这种方法没有为每个单词显式分配一个索引并将这些索引保存在一个字典中，而是将单词散列编码为固定长度的向量，通常用一个非常简单的散列函数来实现。这种方法的主要优点在于，它避免了维护一个显式的单词索引，从而节省内存并允许数据的在线编码（在读取完所有数据之前，你就可以立刻生成标记向量）。
+
+这种方法有个缺点，就是可能会出现散列冲突，即两个不同的单词可能具有相同的散列值，随后任何机器学习模型观察这些散列值，都无法区分它们对应的单词。如果散列空间的维度远大于需要散列的唯一标记的个数，散列冲突的可能性会减小。
+
+```python
+# 使用散列技巧的单词级的one-hot编码
+samples = ['The cat sat on the mat.', 'The dog ate my homework.']
+
+dimensionality = 1000
+max_length = 10
+
+results = np.zeros((len(samples), max_length, dimensionality))
+for i, sample in enumerate(samples):
+    for j, word in list(enumerate(sample.split()))[:max_length]:
+        index = abs(hash(word)) % dimensionality  # 将单词散列为0-1000范围内的一个随机整数索引。
+        results[i, j, index] = 1
+
+results.shape
+```
+
+```text
+(2, 10, 1000)
+```
+
+## 2. 使用词嵌入
+
+密集的词向量，也叫词嵌入。one-hot编码得到的向量是二进制的、稀疏的（绝大部分元素都是0）维度很高的（维度大小等于词表中的单词个数），而词嵌入是低维的浮点数向量（即密集向量、与稀疏向量相对）。与one-hot编码得到的词向量不同，词嵌入是从数据中学习得到的。常见的词向量维度是256， 512或1024（处理非常大的词表时）。于此相对，one-hot编码的词向量维度通常为20000或更高（对应包含20000个标记的词表），因此词向量可以将更多的信息塞入更低的维度中
+
+获取词嵌入有两种方法:
+
+* 在完成主任务（比如文档分类或情感预测）的同时学习词嵌入。在这种情况下，一开始是随机的词向量，然后对这些词向量进行学习，其学习方式与学习神经网络的权重相同。
+* 在不同于待解决问题的机器学习任务上预计算好词嵌入，然后将其加载到模型中。这些词嵌入叫做预训练词嵌入
+
+### 2.1. 利用Embedding层学习词嵌入
+
+要将一个词与一个密集向量相关联，最简单的方法就是随机选择向量。这种方法的问题在于，得到的嵌入空间没有任何结构。说的更抽象一点，词向量之间的几何关系应该表示这些词之间的语义关系。词嵌入的作用应该是将人类的语言映射到几何空间中。例如，在一个合理的嵌入空间中，同义词应该被嵌入到相似的词向量中，一般来说，任意两个词向量之间的几何距离（比如L2距离）应该和这两个词的语义距离有关。.
+
+一个好的词嵌入空间在很大程度上取决于你的任务，某些语义关系的重要性因任务而异。因此，合理的做法是对每个新任务都学习一个新的嵌入空间。
+
+```python
+# 将一个Embedding 层实例化
+from keras.layers import Embedding
+
+embedding_layer = Embedding(1000, 64) #(标记的个数， 嵌入的维度)
+```
+
+可以将Embedding层理解为一个字典，将整数索引（表示特定单词）映射为密集向量。它接收整数作为输入，并在内部字典中查找这些整数，然后返回相关联的向量。Embedding实际上是一种字典查找。
+
+```python
+# 加载IMDB数据，准备用于Embedding层
+from keras.datasets import imdb
+from keras import preprocessing
+
+max_features = 10000  #作为特征的单词个数
+maxlen = 20    # 这么多单词后截断文本
+
+# 将数据加载为整数列表
+(x_train, y_train), (x_test, y_test) = imdb.load_data(num_words=max_features)
+
+x_train[0:2]
+```
+
+```text
+array([list([1, 14, 22, 16, 43, 530, 973, 1622, 1385, 65, 458, 4468, 66, 3941, 4, 173, 36, 256, 5, 25, 100, 43, 838, 112, 50, 670, 2, 9, 35, 480, 284, 5, 150, 4, 172, 112, 167, 2, 336, 385, 39, 4, 172, 4536, 1111, 17, 546, 38, 13, 447, 4, 192, 50, 16, 6, 147, 2025, 19, 14, 22, 4, 1920, 4613, 469, 4, 22, 71, 87, 12, 16, 43, 530, 38, 76, 15, 13, 1247, 4, 22, 17, 515, 17, 12, 16, 626, 18, 2, 5, 62, 386, 12, 8, 316, 8, 106, 5, 4, 2223, 5244, 16, 480, 66, 3785, 33, 4, 130, 12, 16, 38, 619, 5, 25, 124, 51, 36, 135, 48, 25, 1415, 33, 6, 22, 12, 215, 28, 77, 52, 5, 14, 407, 16, 82, 2, 8, 4, 107, 117, 5952, 15, 256, 4, 2, 7, 3766, 5, 723, 36, 71, 43, 530, 476, 26, 400, 317, 46, 7, 4, 2, 1029, 13, 104, 88, 4, 381, 15, 297, 98, 32, 2071, 56, 26, 141, 6, 194, 7486, 18, 4, 226, 22, 21, 134, 476, 26, 480, 5, 144, 30, 5535, 18, 51, 36, 28, 224, 92, 25, 104, 4, 226, 65, 16, 38, 1334, 88, 12, 16, 283, 5, 16, 4472, 113, 103, 32, 15, 16, 5345, 19, 178, 32]),
+       list([1, 194, 1153, 194, 8255, 78, 228, 5, 6, 1463, 4369, 5012, 134, 26, 4, 715, 8, 118, 1634, 14, 394, 20, 13, 119, 954, 189, 102, 5, 207, 110, 3103, 21, 14, 69, 188, 8, 30, 23, 7, 4, 249, 126, 93, 4, 114, 9, 2300, 1523, 5, 647, 4, 116, 9, 35, 8163, 4, 229, 9, 340, 1322, 4, 118, 9, 4, 130, 4901, 19, 4, 1002, 5, 89, 29, 952, 46, 37, 4, 455, 9, 45, 43, 38, 1543, 1905, 398, 4, 1649, 26, 6853, 5, 163, 11, 3215, 2, 4, 1153, 9, 194, 775, 7, 8255, 2, 349, 2637, 148, 605, 2, 8003, 15, 123, 125, 68, 2, 6853, 15, 349, 165, 4362, 98, 5, 4, 228, 9, 43, 2, 1157, 15, 299, 120, 5, 120, 174, 11, 220, 175, 136, 50, 9, 4373, 228, 8255, 5, 2, 656, 245, 2350, 5, 4, 9837, 131, 152, 491, 18, 2, 32, 7464, 1212, 14, 9, 6, 371, 78, 22, 625, 64, 1382, 9, 8, 168, 145, 23, 4, 1690, 15, 16, 4, 1355, 5, 28, 6, 52, 154, 462, 33, 89, 78, 285, 16, 145, 95])],
+      dtype=object)
+```
+
+```python
+#将整数列表转换成形状为（samples, maxlen）的二维整数张量
+x_train = preprocessing.sequence.pad_sequences(x_train, maxlen=maxlen)
+x_test = preprocessing.sequence.pad_sequences(x_test, maxlen=maxlen)
+x_train[0:2]
+```
+
+```text
+array([[  65,   16,   38, 1334,   88,   12,   16,  283,    5,   16, 4472,
+         113,  103,   32,   15,   16, 5345,   19,  178,   32],
+       [  23,    4, 1690,   15,   16,    4, 1355,    5,   28,    6,   52,
+         154,  462,   33,   89,   78,  285,   16,  145,   95]],
+      dtype=int32)
+```
+
+```python
+y_train.shape
+```
+
+```text
+(25000,)
+```
+
+```python
+# 在IMDB数据集上使用Embedding层和分类器
+from keras.models import Sequential
+from keras.layers import Flatten, Dense, Embedding
+
+model = Sequential()
+model.add(Embedding(10000, 8, input_length=maxlen))
+
+model.add(Flatten())
+
+model.add(Dense(1, activation='sigmoid'))
+model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
+model.summary()
+
+history = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
+```
+
+```text
+Model: "sequential_2"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+embedding_3 (Embedding)      (None, 20, 8)             80000     
+_________________________________________________________________
+flatten_2 (Flatten)          (None, 160)               0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 1)                 161       
+=================================================================
+Total params: 80,161
+Trainable params: 80,161
+Non-trainable params: 0
+_________________________________________________________________
+
+
+/usr/lib/python3.7/site-packages/tensorflow/python/ops/gradients_util.py:93: UserWarning: Converting sparse IndexedSlices to a dense Tensor of unknown shape. This may consume a large amount of memory.
+  "Converting sparse IndexedSlices to a dense Tensor of unknown shape. "
+
+
+Train on 20000 samples, validate on 5000 samples
+Epoch 1/10
+20000/20000 [==============================] - 3s 146us/step - loss: 0.6799 - acc: 0.5913 - val_loss: 0.6468 - val_acc: 0.6846
+Epoch 2/10
+20000/20000 [==============================] - 2s 103us/step - loss: 0.5643 - acc: 0.7456 - val_loss: 0.5399 - val_acc: 0.7220
+Epoch 3/10
+20000/20000 [==============================] - 2s 97us/step - loss: 0.4697 - acc: 0.7858 - val_loss: 0.5068 - val_acc: 0.7436
+Epoch 4/10
+20000/20000 [==============================] - 2s 100us/step - loss: 0.4239 - acc: 0.8084 - val_loss: 0.4975 - val_acc: 0.7500
+Epoch 5/10
+20000/20000 [==============================] - 2s 98us/step - loss: 0.3931 - acc: 0.8238 - val_loss: 0.4984 - val_acc: 0.7560
+Epoch 6/10
+20000/20000 [==============================] - 2s 97us/step - loss: 0.3684 - acc: 0.8400 - val_loss: 0.4990 - val_acc: 0.7558
+Epoch 7/10
+20000/20000 [==============================] - 2s 115us/step - loss: 0.3462 - acc: 0.8519 - val_loss: 0.5049 - val_acc: 0.7554
+Epoch 8/10
+20000/20000 [==============================] - 2s 97us/step - loss: 0.3268 - acc: 0.8640 - val_loss: 0.5121 - val_acc: 0.7556
+Epoch 9/10
+20000/20000 [==============================] - 2s 98us/step - loss: 0.3082 - acc: 0.8734 - val_loss: 0.5203 - val_acc: 0.7528
+Epoch 10/10
+20000/20000 [==============================] - 2s 102us/step - loss: 0.2905 - acc: 0.8841 - val_loss: 0.5298 - val_acc: 0.7506
+```
+
+### 2.2. 使用预训练的词嵌入
+

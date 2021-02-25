@@ -1,0 +1,174 @@
+---
+title: 温度预测
+date: '2021-01-22T09:27:21.000Z'
+draft: false
+---
+
+# 温度预测
+
+## 1. 观察耶拿天气数据集的数据
+
+```python
+import os
+
+fname = './data/jena_climate_2009_2016.csv'
+
+f = open(fname)
+data = f.read()
+f.close()
+
+lines = data.split('\n')
+header = lines[0].split(',')
+lines = lines[1:]
+
+print(header)
+print(len(lines))
+```
+
+```text
+['"Date Time"', '"p (mbar)"', '"T (degC)"', '"Tpot (K)"', '"Tdew (degC)"', '"rh (%)"', '"VPmax (mbar)"', '"VPact (mbar)"', '"VPdef (mbar)"', '"sh (g/kg)"', '"H2OC (mmol/mol)"', '"rho (g/m**3)"', '"wv (m/s)"', '"max. wv (m/s)"', '"wd (deg)"']
+420551
+```
+
+```python
+# 解析数据
+import numpy as np
+
+float_data = np.zeros((len(lines), len(header) - 1))
+for i, line in enumerate(lines):
+    values = [float(x) for x in line.split(',')[1:]]
+    float_data[i, :] = values
+```
+
+```python
+# 绘制温度时间序列
+from matplotlib import pyplot as plt
+
+temp = float_data[:, 1] # 温度（摄氏度）
+plt.plot(range(len(temp)), temp)
+plt.show()
+```
+
+![png](https://github.com/yangchnet/Tem/tree/73198dc3a08ab7039d303be561dda4e51ef6c3b5/DL&ML/温度预测_files/温度预测_4_0.png)
+
+```python
+plt.plot(range(1440), temp[:1440])
+```
+
+```text
+[<matplotlib.lines.Line2D at 0x7f596ff56978>]
+```
+
+![png](https://github.com/yangchnet/Tem/tree/73198dc3a08ab7039d303be561dda4e51ef6c3b5/DL&ML/温度预测_files/温度预测_5_1.png)
+
+## 2. 准备数据
+
+问题描述：一个时间步是10分钟，没steps个时间步采样一次数据，给定过去lookback个时间步之内的数据，能否预测delay个时间步之后的温度？用到的参数如下:  
+lookback = 720 \# 给定过去5天内的观测数据  
+steps = 6 \# 观测数据的采样频率是每小时一个数据点  
+delay = 144 \# 目标是未来24小时之后的数据
+
+**数据标准化**
+
+```python
+mean = float_data[:200000].mean(axis=0)
+float_data -= mean
+std = float_data[:200000].std(axis=0)
+float_data /= std
+```
+
+下面这个生成器以当前的浮点数数组作为输入，并从最近的数据中生成数据批量，同时生成未来的目标温度。sample是输入数据的一个批量，targets是对应的目标温度数组
+
+```python
+def generator(data, lookback, delay, min_index, max_index, shuffle=False, batch_size=128, step=6):
+    '''
+        data:浮点数据组成的原始数组
+        lookback: 输入数据应该包括过去多少个时间步
+        delay：目标应该在未来多少个时间后
+        min_index 和 max_index: data数组中的索引，用于界定需要抽取那些时间步。
+        shuffle: 是打乱样本，还是按顺序抽取样本
+        batch_size:每个批量的样本数
+        step:数据采样的周期。
+    '''
+    if max_index is None:
+        max_index = len(data) - delay - 1
+    i = min_index + lookback
+    while 1:
+        if shuffle:
+            rows = np.random.randint(
+                min_index + lookback, max_index, size=batch_size)
+        else:
+            if i + batch_size >= max_index:
+                i = min_index + lookback
+            rows = np.arange(i, min(i + batch_size, max_index))
+            i += len(rows)
+        samples = np.zeros((len(rows), lookback // step, data.shape[-1]))
+        targets = np.zeros((len(rows),))
+        for j, row in enumerate(rows):
+            indices = range(rows[j] - lookback, rows[j], step)
+            samples[j] = data[indices]
+            targets[j] = data[rows[j] + delay][1]
+        yield samples, targets
+```
+
+**准备训练生成器、验证生成器和测试生成器**
+
+```python
+lookback = 1440
+step = 6
+delay = 144
+batch_size = 128
+
+train_gen = generator(float_data, 
+                     lookback=lookback,
+                     delay=delay,
+                     min_index=0,
+                     max_index=200000,
+                     shuffle=True,
+                     step=step,
+                     batch_size=batch_size)
+
+val_gen = generator(float_data, 
+                   lookback=lookback,
+                   delay=delay,
+                   min_index=2000001, 
+                   max_index=3000000,
+                   step=step,
+                   batch_size=batch_size)
+
+test_gen = generator(float_data, 
+                    lookback=lookback,
+                    delay=delay, 
+                    min_index=3000001, 
+                    max_index=None,
+                    step=step,
+                    batch_size=batch_size)
+
+val_steps = (300000 - 200001 - lookback)  // batch_size  # 为了查看整个验证集，需要从val_gen中抽取多少次
+test_steps = (len(float_data) - 300001 - lookback) // batch_size  # 为了查看整个测试集，需要从test_gen中抽取多少次
+```
+
+## 3. 一种基本的机器学习方法
+
+在尝试机器学习方法之前，建立一个基于常识的基准方法是很有用的；同样，在开始研究复杂且计算代价很高的模型（如RNN）之前，尝试使用简单且计算代价低的机器学习模型也是很有用的，比如小型的密集连接网络。这可以保证进一步增加问题的复杂度是合理的，并且会带来真正的好处
+
+```python
+# 训练并评估一个密集连接模型
+from keras.models import Sequential
+from keras import layers
+from keras.optimizers import RMSprop
+
+model = Sequential()
+model.add(layers.Flatten(input_shape=(lookback // step, float_data.shape[-1])))
+model.add(layers.Dense(32, activation='relu'))
+model.add(layers.Dense(1))
+model.compile(optimizer=RMSprop(), loss='mae')
+history = model.fit_generator(train_gen, steps_per_epoch=500, 
+                             epochs=20, validation_data=val_gen,
+                             validation_steps=val_steps)
+```
+
+```python
+
+```
+
