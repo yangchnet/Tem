@@ -1,6 +1,6 @@
 ---
 title: python与其他语言的对比（helloworld）
-date: 2021-01-22T09:27:21.000Z
+date: '2021-01-22T09:27:21.000Z'
 draft: false
 ---
 

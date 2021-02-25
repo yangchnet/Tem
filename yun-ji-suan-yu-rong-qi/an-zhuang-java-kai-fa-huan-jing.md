@@ -1,6 +1,6 @@
 ---
 title: Docker搭建Java环境
-date: '2021-01-22T09:27:21.000Z'
+date: 2021-01-22T09:27:21.000Z
 draft: false
 ---
 
