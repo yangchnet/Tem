@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Introduction](README.md)
+* [Empty](README.md)
 * [汇编](hui-bian/README.md)
   * [基本计算指令](hui-bian/ji-ben-ji-suan-zhi-ling.md)
 * [SQL](sql/README.md)
