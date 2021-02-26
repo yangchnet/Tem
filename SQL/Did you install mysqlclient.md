@@ -1,6 +1,6 @@
 ---
 author: "李昌"
-title: "Didyouinstallmysqlclient?"
+title: "Did you install mysqlclient?"
 date: "2021-02-25"
 tags: ["SQL"]
 categories: ["SQL"]

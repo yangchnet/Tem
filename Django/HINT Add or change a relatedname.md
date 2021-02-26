@@ -1,6 +1,6 @@
 ---
 author: "李昌"
-title: "HINT:Addorchangearelated_name"
+title: "HINT : Add or change are lated_name"
 date: "2021-02-25"
 tags: ["Django"]
 categories: ["Django"]
