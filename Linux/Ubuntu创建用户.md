@@ -17,12 +17,3 @@ sudo adduser [username] sudo #添加管理员权限
 su [username]#切换用户
 ```
 
-
-```python
-print('hello')
-```
-
-    hello
-    
-
-jjakfjklja
