@@ -13,16 +13,17 @@ TocOpen: true
 pirnt系函数来自fmt包，主要用于做各种格式的输出
 这些函数主要有
 
-1. [fmt.Fprintf](#fmt.Fprintf)
-2. [fmt.Printf](#fmt.Printf)
-3. [fmt.Sprintf](#fmt.Sprintf)
-4. [fmt.Fprint](#fmt.Fprint)
-5. [fmt.Print](#fmt.Print)
-6. [fmt.Sprint](#fmt.Sprint)
-7. [fmt.Fprintln](#fmt.Fprintln)
-8. [fmt.Println](#fmt.Println)
-9. [fmt.Sprintln](#fmt.Sprintln)  
-10. [总结](#总结)
+- [golang中的print系函数详解](#golang中的print系函数详解)
+	- [fmt.Fprintf](#fmtfprintf)
+	- [fmt.Printf](#fmtprintf)
+	- [fmt.Sprintf](#fmtsprintf)
+	- [fmt.Fprint](#fmtfprint)
+	- [fmt.Print](#fmtprint)
+	- [fmt.Sprint](#fmtsprint)
+	- [fmt.Fprintln](#fmtfprintln)
+	- [fmt.Println](#fmtprintln)
+	- [fmt.Sprintln](#fmtsprintln)
+	- [总结](#总结)
 
 下面来逐个分析
 

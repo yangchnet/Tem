@@ -34,26 +34,21 @@ f := w.(*os.File)   // 类型检查成功了，所以f的值为os.Stdout
 f == os.Stdout   // true
 fmt.Printf("%p", f)
 ```
+> 输出
 
-    0xc0004560c0
+0xc0004560c0
 
-
-
-
-    12 <nil>
-
-
-
+---
 
 ```go
 c := w.(*bytes.Buffer)   // 类型检查失败
 ```
+> 输出
 
+<font color="#dd0000">interface conversion: <io.Writer> is <*os.File>, not <*bytes.Buffer></font><br /> 
 
-    interface conversion: <io.Writer> is <*os.File>, not <*bytes.Buffer>
-
-
-2. 断言的类型T是一个接口类型  
+    
+1. 断言的类型T是一个接口类型  
 ```go
 t, ok := i.(T)
 ```
@@ -68,10 +63,11 @@ rw := w.(io.ReadWriter)
 w = new(ByterCounter)
 rw = w.(io.ReadWriter)
 ```
+> 输出
 
 
-    repl.go:1:10: expected ';', found 'IDENT' Wirter
-
+<font color="#dd0000">repl.go:1:10: expected ';', found 'IDENT' Wirter</font><br /> 
+    
 
 如果断言操作的对象是一个nil接口值，那么不论被断言的是什么类型，断言都会失败。  
 对一个更少限制性的接口类型（更少的方法集合）做断言，因为它表现的就像赋值操作一样，除了对于nil接口值的情况。
