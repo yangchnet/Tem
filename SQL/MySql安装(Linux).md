@@ -1,6 +1,6 @@
 ---
 author: "李昌"
-title: "MySql安装后配置"
+title: "MySql安装和配置"
 date: "2021-02-25"
 tags: ["SQL"]
 categories: ["SQL"]
@@ -8,17 +8,21 @@ ShowToc: true
 TocOpen: true
 ---
 
-# MySql安装后配置
+## 1. 安装mysql
 
-## 1. 运行安全脚本
+```bash
+sudo apt update
+sudo apt install mysql-server
+```
 
+
+## 2. 配置mysql
+
+运行 `security script`
 ```bash
 sudo mysql_secure_installation
 ```
-
-这个脚本将根据你的选择改变一些不太安全的选项，并重置root密码
-
-## 2. 调整身份验证和用户权限
+根据提示进行一些必要的配置
 
 进入mysql
 ```bash
