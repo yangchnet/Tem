@@ -2,8 +2,8 @@
 author: "李昌"
 title: "Windows装系统遇到的问题"
 date: "2021-02-25"
-tags: ["Windows"]
-categories: ["Windows"]
+tags: ["Windows", "MBR", "GPT", "磁盘转换"]
+categories: ["OS"]
 ShowToc: true
 TocOpen: true
 ---
