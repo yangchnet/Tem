@@ -51,7 +51,7 @@ ssh-add ~/.ssh/id_ed25519
 ```
 
 #### 新增 SSH 密钥到 GitHub 帐户
-复制你的ssh秘钥（id_ed25519文件内容），打开github
+复制你的ssh秘钥（id_ed25519.pub文件内容），打开github
 ![20210425191443](https://raw.githubusercontent.com/lich-Img/blogImg/master/img20210425191443.png)
 点击`new ssh key`,将你的秘钥复制到对应的位置
 ![20210425191558](https://raw.githubusercontent.com/lich-Img/blogImg/master/img20210425191558.png)
