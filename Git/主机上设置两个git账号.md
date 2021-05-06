@@ -8,6 +8,17 @@ ShowToc: true
 TocOpen: true
 ---
 > ubuntu环境
+## 0. 拉取github仓库的两种方式
+在拉取github仓库时，我们常用
+```sh
+git clone https://github.com/username/repoName.git
+```
+的方式，这种方式使用https协议
+还可以使用ssh协议，以如下方式拉取仓库
+```sh
+git clone git@github.com:username/repoName.git
+```
+以下介绍的设置方法，基于ssh协议。
 
 ## 1. 使用SSH连接到GitHub
 使用 SSH 协议可以连接远程服务器和服务并向它们验证。 利用 SSH 密钥可以连接 GitHub，而无需在每次访问时都提供用户名和个人访问令牌。  
@@ -80,7 +91,7 @@ Generating public/private ed25519 key pair.
 Enter file in which to save the key (/home/lc/.ssh/id_ed25519):  # 这里要为两个秘钥定义不同的文件名
 Enter passphrase (empty for no passphrase): # 也可直接回车
 ```
-**这里要注意的是设置文件名时不能直接跳过，要为两个秘钥定义不同的文件名，比如所一个为`id_ed25519_one`, 另一个为`id_ed25519_two` ，其中`one`可以设置你的git用户名。**
+**这里要注意的是设置文件名时不能直接跳过，要为两个秘钥定义不同的文件名，比如所一个为`id_ed25519`, 另一个为`id_ed25519_work` ，其中`work`可以设置你的工作git用户名。分别用于你个人和工作用的github账号。**
 
 #### 将两个秘钥分别加入对应的github账号
 ...
@@ -94,19 +105,45 @@ vim ~/.ssh/config
 ```
 文件内容如下：
 ```
-Host git@one.github.com
-HostName github.com
-User one # 你的用户名
-IdentityFile ~/.ssh/id_ed25519_one
+# default github account
+Host git@github.com
+    HostName github.com
+    User git 
+    IdentityFile ~/.ssh/id_ed25519_one
 
-Host git@two.github.com
-HostName github.com
-User two
-IdentityFile ~/.ssh/id_ed25519_two
+Host git@work.github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519_two
 ```
 
 #### 测试是否设置成功
 ```sh
-ssh -T git@one.github.com
-# Hi one! You've successfully authenticated, but GitHub does not provide shell access.
+ssh -T git@work.github.com
+# Hi $yourWorkAccountName$! You've successfully authenticated, but GitHub does not provide shell access.
+
+ssh -T git@github.com
+# Hi $yourPersonAccountName$! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+#### 还需要做什么
+如果你要以工作账户的身份去拉取某个库，那么你需要将原来用的
+```sh
+git clone git@github.com:username/repository-name.git
+```
+替换为
+```sh
+git clone git@work.github.com:username/repository-name.git  
+```
+和我们的config相对应
+
+而如果直接使用原命令，即
+```sh
+git clone git@github.com:username/repository-name.git
+```
+那么默认使用的是你个人账户。
+
+如果你想要为你一个已有的仓库指定账户，可使用
+```sh
+git remote origin set-url git@work.github.com:username/repository-name.git  # 指定工作账户
 ```
