@@ -208,7 +208,7 @@ func formatAtom(v reflect.Value) string {
 上面提到的 `reflect.TypeOf` 和 `reflect.ValueOf` 函数就能完成这里的转换，如果我们认为 Go 语言的类型和反射类型处于两个不同的世界，那么这两个函数就是连接这两个世界的桥梁。
 ![20210522164336](https://raw.githubusercontent.com/lich-Img/blogImg/master/img20210522164336.png)
 请看以下例子：
-```go
+```go  
 author := "Bob"
 fmt.Println("TypeOf author:", reflect.TypeOf(author))  // TypeOf author: string
 
@@ -224,7 +224,7 @@ fmt.Println("ValueOf author:", reflect.ValueOf(author)) // ValueOf author: Bob
 
 ### 3.2 从反射对象可以获取`interface{}`变量
 既然能够将接口类型的变量转换成反射对象，那么一定需要其他方法将反射对象还原成接口类型的变量，`reflect`包中的`reflect.Value.Interface`就能完成这项工作：
-```go
+```go  
 v := reflect.ValueOf(3) // a reflect.Value
 x := v.Interface() // an interface{}
 i := x.(int) // an int
@@ -238,7 +238,7 @@ fmt.Printf("%d\n", i) // "3"
 
 ### 3.3 要修改反射对象，其值必须可设置
 假如我们想要更新一个`reflect.Value`,那么它持有的值一定是可以被更新的，假设有如下代码：
-```go
+```go  
 i := 1
 v := reflect.ValueOf(i)
 v.SetInt(10)
@@ -247,7 +247,7 @@ fmt.Println(i) // panic: reflect: reflect.flag.mustBeAssignable using unaddressa
 运行上述代码会导致程序崩溃并报出 “reflect: reflect.flag.mustBe Assignableusing unaddressable value” 错误，仔细思考一下就能够发现出错的原因：由于 Go 语言的函数调用都是传值的，所以我们得到的反射对象跟最开始的变量没有任何关系，那么直接修改反射对象无法改变原始变量，程序为了防止错误就会崩溃。
 
 想要修改原变量只能使用如下方法：
-```go
+```go  
 i := 1
 v := reflect.ValueOf(&i)
 v.Elem().SetInt(10)
@@ -258,7 +258,7 @@ fmt.Println(i)
 ## 4. reflect场景实践
 
 1. 动态调用函数(无参数)  
-```go
+```go  
 type T struct {}
 
 func main() {
@@ -274,7 +274,7 @@ func (t *T) Do() {
 
 2. 动态调用函数(有参数)
 
-```go
+```go  
 type T struct{}
 
 func main() {
@@ -294,7 +294,7 @@ func (t *T) Do(a int, b string) {
 3. 处理返回值中的错误
 
 返回值也是 Value 类型，对于错误，可以转为 interface 之后断言
-```go
+```go  
 type T struct{}
 
 func main() {
@@ -310,7 +310,7 @@ func (t *T) Do() (string, error) {
 ```
 
 4. struct tag 解析
-```go
+```go  
 type T struct {
     A int    `json:"aaa" test:"testaaa"`
     B string `json:"bbb" test:"testbbb"`
@@ -334,7 +334,7 @@ func main() {
 ```
 
 5. 类型转换和赋值
-```go
+```go  
 type T struct {
     A int    `newT:"AA"`
     B string `newT:"BB"`
@@ -364,11 +364,11 @@ func main() {
     }
 
     fmt.Println(newT)
-}
+}  
 ```
 
 6. 通过 kind（）处理不同分支
-```go
+```go  
 func main() {
     a := 1
     t := reflect.TypeOf(a)
@@ -382,7 +382,7 @@ func main() {
 ```
 
 7. 判断实例是否实现了某接口
-```go
+```go  
 type IT interface {
     test1()
 }
