@@ -257,7 +257,7 @@ fmt.Println(i)
 
 ## 4. reflect场景实践
 
-1. 动态调用函数（无参数）
+1. 动态调用函数(无参数)  
 ```go
 type T struct {}
 
@@ -272,7 +272,7 @@ func (t *T) Do() {
 }
 ```
 
-2. 动态调用函数（有参数）
+2. 动态调用函数(有参数)
 ```go
 type T struct{}
 
