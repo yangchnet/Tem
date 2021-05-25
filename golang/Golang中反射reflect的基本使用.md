@@ -258,6 +258,7 @@ fmt.Println(i)
 ## 4. reflect场景实践
 
 1. 动态调用函数(无参数)  
+
 ```go  
 type T struct {}
 
@@ -310,6 +311,7 @@ func (t *T) Do() (string, error) {
 ```
 
 4. struct tag 解析
+
 ```go  
 type T struct {
     A int    `json:"aaa" test:"testaaa"`
@@ -334,6 +336,7 @@ func main() {
 ```
 
 5. 类型转换和赋值
+
 ```go  
 type T struct {
     A int    `newT:"AA"`
@@ -368,6 +371,7 @@ func main() {
 ```
 
 6. 通过 kind（）处理不同分支
+
 ```go  
 func main() {
     a := 1
@@ -382,6 +386,7 @@ func main() {
 ```
 
 7. 判断实例是否实现了某接口
+
 ```go  
 type IT interface {
     test1()
