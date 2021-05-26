@@ -1,0 +1,119 @@
+baseURL: "http://lichang.tech/"
+title: Linote
+paginate: 10
+theme: PaperMod
+
+enableInlineShortcodes: true
+enableRobotsTXT: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+# googleAnalytics: UA-123-45
+
+minify:
+    disableXML: true
+    # minifyOutput: true
+
+languages:
+    en:
+        languageName: "English"
+        weight: 1
+        menu:
+            main:
+                - name: 存档
+                  url: archives
+                  weight: 5
+                - name: 搜索
+                  url: search/
+                  weight: 10
+                - name: 标签
+                  url: tags/
+                  weight: 10
+                - name: 分类
+                  url: categories/
+                  weight: 10
+
+outputs:
+    home:
+        - HTML
+        - RSS
+        - JSON
+
+params:
+    env: production # to enable google analytics, opengraph, twitter-cards and schema.
+    description: "Theme PaperMod - https://github.com/adityatelange/hugo-PaperMod"
+    author: 李昌
+    # author: ["Me", "You"] # multiple authors
+
+    defaultTheme: auto
+    # disableThemeToggle: true
+    ShowShareButtons: true
+    ShowReadingTime: true
+    # disableSpecial1stPost: true
+    displayFullLangName: true
+    ShowPostNavLinks: true
+    ShowBreadCrumbs: true
+    ShowToc: true
+    # comments: false
+    images: ["papermod-cover.png"]
+
+    profileMode:
+        enabled: true
+        title: 李昌的个人网站
+        imageUrl: "https://raw.githubusercontent.com/lich-Img/blogImg/master/img20210514094119.png"
+        imageTitle: Don't panic!
+        imageWidth: 120
+        imageHeight: 120
+        buttons:
+            - name: 存档
+              url: "/archives"
+            - name: 分类
+              url: "/categories"
+            - name: 标签
+              url: "/tags"
+
+    homeInfoParams:
+            Title: "李昌的个人网站"
+            Content: >
+                    进来看看吧!希望这里的记录可以帮到你.  
+                      
+    socialIcons:
+        - name: github
+          url: "https://github.com/yangchnet"
+
+    # label:
+    #     text: "Home"
+    #     icon: icon.png
+    #     iconHeight: 35
+
+    # analytics:
+    #     google:
+    #         SiteVerificationTag: "XYZabc"
+
+    assets:
+            favicon: "https://raw.githubusercontent.com/lich-Img/blogImg/master/favicon.ico"
+            favicon16x16: "https://raw.githubusercontent.com/lich-Img/blogImg/master/favicon.ico"
+            favicon32x32: "https://raw.githubusercontent.com/lich-Img/blogImg/master/favicon32.ico"
+    #     apple_touch_icon: "<link / abs url>"
+    #     safari_pinned_tab: "<link / abs url>"
+
+    cover:
+        hidden: true # hide everywhere but not in structured data
+        hiddenInList: true # hide on list pages and home
+        hiddenInSingle: true # hide on single page
+
+    # fuseOpts:
+    #     isCaseSensitive: false
+    #     shouldSort: true
+    #     location: 0
+    #     distance: 1000
+    #     threshold: 0.4
+    #     minMatchCharLength: 0
+    #     keys: ["title", "permalink", "summary", "content"]
+
+taxonomies:
+    category: categories
+    tag: tags
+    series: series
+
