@@ -19,14 +19,15 @@ TocOpen: true
 这里使用了django提供的User类，直接继承
 
 ## 2、创建UserForm类
-
+```python
     class SigninFrom(forms.Form):
         user_name = forms.CharField()
         user_email = forms.EmailField()
         user_password = forms.CharField()
-
+```
 ## 3、完成模板
 
+```html
     <form  action="{% url 'permission:signin' %}" accept-charset="UTF-8" method="post">
                                 <input name="utf8" type="hidden"
                                                                               value="&#x2713;"/>
@@ -65,11 +66,12 @@ TocOpen: true
                                 </button>
     
                             </form>
+```
 
 - 注意，这里三者要统一用一样的name，否则会接收不到数据
 
 ## views.py如何编写
-
+```python
     def fun(request):
     		if request.method == 'GET':
     				...
@@ -77,7 +79,7 @@ TocOpen: true
     		if request.method == 'POST':
     				...
     				return
-
+```
 - 使用forms.cleaned_data访问数据，返回字典类型
 
 ## 你还可以
@@ -85,7 +87,7 @@ TocOpen: true
 - 从view中返回form，django会自动为你渲染，当然，十分丑陋
 
 例如：
-
+```html
     <form action = "{% url 'permission:signin' %}" method="post">
                                 {% csrf_token %}
                                 <table>
@@ -95,7 +97,7 @@ TocOpen: true
                                         data-ga-click="Signup, Attempt, location:teams;">在Bodydetect上注册
                                 </button>
                             </form>
-
+```
 只需要为form保留位置
 
 渲染结果：
@@ -109,26 +111,26 @@ TocOpen: true
 ## 使用ModelForm类
 
 > views.py
-
+```python
     from django.db import models
     class Article(models.Model):
     		author = models.CharField(max_length = 150)
     		title = models.CharField(max_lengeth = 100)
     		content = models.CharField(max_lengeth = 10000)
     		time = models.TimeField( )
-
+```
 > model.py
-
+```python
     from django.forms import ModelForm
     class Article(ModelForm):
         class Meta:
     				model = Article
     				fields = ['author', 'title', 'content', 'time']
-
+```
 ## save方法
 
 - 每个ModelForm还有一个save()方法，此方法根据绑定到表单的数据创建并保存数据库对象。
-
+```
     # Create a form instance with POST data.
     >>> f = AuthorForm(request.POST)
     
@@ -143,7 +145,7 @@ TocOpen: true
     
     # Now, save the many-to-many data for the form.
     >>> f.save_m2m()
-
+```
 ## Reference
 
 [Django 教程 9: 使用表单](https://developer.mozilla.org/zh-CN/docs/Learn/Server-side/Django/Forms)
